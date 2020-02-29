@@ -92,7 +92,7 @@ func waitConnections(listener net.Listener) {
 
 func listenClient(conn net.Conn) {
 	for {
-		message, err := bufio.NewReader(conn).ReadBytes(byte(jsonEOF))
+		message, err := bufio.NewReader(conn).ReadBytes('\n')
 
 		if err == io.EOF {
 			log.Print("Connection lost")
@@ -102,8 +102,6 @@ func listenClient(conn net.Conn) {
 		if string(message) == "" {
 			continue
 		}
-
-		message = append(message, byte(jsonEOF))
 
 		var request commands.Request
 
@@ -130,6 +128,7 @@ func listenClient(conn net.Conn) {
 
 func bytedRes(res commands.Response) []byte {
 	bytes, _ := json.Marshal(res)
+	bytes = append(bytes, '\n')
 
 	return bytes
 }
