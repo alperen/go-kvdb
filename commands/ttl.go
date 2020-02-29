@@ -2,7 +2,7 @@ package commands
 
 import (
 	"go-kvdb/database"
-	"strings"
+	"strconv"
 )
 
 var (
@@ -16,7 +16,8 @@ var TTL CommandFunc = func(db *database.Database, m map[string]string) (Response
 	}
 
 	diff, _ := db.GetEntryTTLDuration(key)
-	diffStr := strings.TrimSuffix(diff.String(), "s")
+	diffSecs := diff.Seconds()
+	ttl := strconv.FormatFloat(diffSecs, 'f', 6, 64)
 
-	return Response{StatusOK, "", map[string]string{"ttl": diffStr}}, true
+	return Response{StatusOK, "", map[string]string{"ttl": ttl}}, true
 }
