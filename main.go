@@ -18,7 +18,7 @@ import (
 var jsonEOF = '}'
 
 var persistToDiskInSeconds int
-var maxMemorySize float64
+var maxMemorySizeInBytes int
 var defaultTTLInSeconds int
 var port string
 var file string
@@ -43,7 +43,7 @@ var commandsFuncMap = map[string]commands.CommandFunc{
 
 func init() {
 	flag.IntVar(&persistToDiskInSeconds, "persist-to-disk", int(time.Minute), "Server stores the database in every given minutes.")
-	flag.Float64Var(&maxMemorySize, "max-mem-size", 0, "Sets the maximum size of database. Server does not accepts new entries while maximum size is hanging. Default 0 means no limits.")
+	flag.IntVar(&maxMemorySize, "max-mem-size", database.AbsolutDB, "Sets the maximum size of database. Server does not accepts new entries while maximum size is hanging. Default 0 means no limits.")
 	flag.StringVar(&port, "port", "6379", "Sets serving port. The given port number should be free for communication")
 	flag.StringVar(&file, "file", "", "Refers to database's location on the disk. Should be existed file.")
 	flag.BoolVar(&panics, "panics", true, "Shows panics.")
@@ -59,7 +59,7 @@ func p(err error) {
 
 func main() {
 
-	db = database.CreateDatabase(100)
+	db = database.CreateDatabase(maxMemorySizeInBytes)
 
 	listenerAddr := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", listenerAddr)

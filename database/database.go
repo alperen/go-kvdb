@@ -4,6 +4,10 @@ import (
 	"sync"
 )
 
+var AbsolutDB = 0
+
+var isAbsolutDB = func(maxSize int) bool { return maxSize == AbsolutDB }
+
 type Database struct {
 	entries        map[string]string
 	maxSizeInBytes int
@@ -21,12 +25,14 @@ func CreateDatabase(maxSize int) *Database {
 }
 
 func (db *Database) Set(key, value string) bool {
-	size := db.Size()
-	maxSize := db.maxSizeInBytes
-	candidateEntrySize := memoryCalcForEntry(key, value)
+	if !isAbsolutDB(db.maxSizeInBytes) {
+		size := db.Size()
+		maxSize := db.maxSizeInBytes
+		candidateEntrySize := memoryCalcForEntry(key, value)
 
-	if size+candidateEntrySize > maxSize {
-		return false
+		if size+candidateEntrySize > maxSize {
+			return false
+		}
 	}
 
 	db.Lock()
