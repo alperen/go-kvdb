@@ -1,7 +1,9 @@
 package database
 
 import (
+	"log"
 	"sync"
+	"time"
 )
 
 var AbsolutDB = 0
@@ -12,7 +14,7 @@ type Database struct {
 	entries        map[string]string
 	maxSizeInBytes int
 	isFull         bool
-	entriesWithTTL []string
+	entriesWithTTL map[string]time.Time
 	sync.Mutex
 }
 
@@ -20,6 +22,7 @@ func CreateDatabase(maxSize int) *Database {
 	return &Database{
 		entries:        make(map[string]string),
 		maxSizeInBytes: maxSize,
+		entriesWithTTL: make(map[string]time.Time),
 		Mutex:          sync.Mutex{},
 	}
 }
@@ -58,6 +61,12 @@ func (db *Database) Delete(key string) bool {
 
 	delete(db.entries, key)
 
+	_, hasTTL := db.entriesWithTTL[key]
+
+	if hasTTL {
+		delete(db.entriesWithTTL, key)
+	}
+
 	return true
 }
 
@@ -78,6 +87,35 @@ func (db *Database) EntryCount() int {
 	defer db.Unlock()
 
 	return len(db.entries)
+}
+
+func (db *Database) SetTTLValue(key string, duration time.Duration) {
+	db.Lock()
+	defer db.Unlock()
+
+	now := time.Now()
+	expiresAt := now.Add(duration)
+
+	db.entriesWithTTL[key] = expiresAt
+}
+
+func (db *Database) TTLWatcher(done chan bool) {
+	timer := time.Tick(1 * time.Second)
+	for range timer {
+		now := time.Now()
+
+		log.Println(len(db.entriesWithTTL))
+
+		for key, expire := range db.entriesWithTTL {
+			diff := expire.Sub(now)
+
+			if diff < 0 {
+				db.Delete(key)
+			}
+		}
+	}
+
+	done <- true
 }
 
 func memoryCalcForEntry(key, val string) int {

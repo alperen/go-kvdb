@@ -26,6 +26,7 @@ var refreshRateInSeconds int
 var port string
 var file string
 var panics bool
+var detach bool
 
 var (
 	errBadReqRes       = commands.Response{"error", "Received message could not parsed as json.", nil}
@@ -52,6 +53,7 @@ func init() {
 	flag.StringVar(&port, "port", "6379", "Sets serving port. The given port number should be free for communication")
 	flag.StringVar(&file, "file", "", "Refers to database's location on the disk. Should be existed file.")
 	flag.BoolVar(&panics, "panics", true, "Shows panics.")
+	flag.BoolVar(&detach, "detach", false, "")
 
 	flag.Parse()
 }
@@ -96,7 +98,12 @@ func main() {
 	defer listener.Close()
 
 	go waitConnections(listener, done)
-	go printScreen(sclog, done)
+
+	if !detach {
+		go printScreen(sclog, done)
+	}
+
+	go db.TTLWatcher(done)
 
 	<-done
 }
@@ -136,7 +143,6 @@ func listenClient(conn net.Conn) {
 		err = json.Unmarshal(message, &request)
 
 		if err != nil {
-			log.Println(err, string(message))
 			conn.Write(bytedRes(errBadReqRes))
 			continue
 		}
