@@ -17,8 +17,6 @@ import (
 	"go-kvdb/screenlog"
 )
 
-var jsonEOF = '}'
-
 var persistToDiskInSeconds int
 var maxMemorySizeInBytes int
 var defaultTTLInSeconds int
