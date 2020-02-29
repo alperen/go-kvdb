@@ -2,9 +2,22 @@ package commands
 
 import "go-kvdb/database.go"
 
-var Get CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
-	key := m["key"]
-	val := db.Get(key)
+var (
+	errGetKeyNotDefRes = Response{StatusErr, "Key field is not defined in received arguments", nil}
+	errValNotFoundRes  = Response{StatusErr, "Key couldn't find in database.", map[string]string{"value": ""}}
+)
 
-	return Response{"OK", "", map[string]string{"value": val}}, true
+var Get CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
+	key, keyExists := m["key"]
+	val, valExists := db.Get(key)
+
+	if !keyExists {
+		return errGetKeyNotDefRes, false
+	}
+
+	if !valExists {
+		return errValNotFoundRes, false
+	}
+
+	return Response{StatusOK, "", map[string]string{"value": val}}, true
 }
