@@ -8,11 +8,13 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
+	"os/exec"
 	"time"
 
 	"go-kvdb/commands"
-
 	"go-kvdb/database"
+	"go-kvdb/screenlog"
 )
 
 var jsonEOF = '}'
@@ -20,6 +22,7 @@ var jsonEOF = '}'
 var persistToDiskInSeconds int
 var maxMemorySizeInBytes int
 var defaultTTLInSeconds int
+var refreshRateInSeconds int
 var port string
 var file string
 var panics bool
@@ -30,6 +33,7 @@ var (
 )
 
 var db *database.Database
+var sclog *screenlog.ScreenLog
 
 var commandsFuncMap = map[string]commands.CommandFunc{
 	"GET":    commands.Get,
@@ -42,8 +46,9 @@ var commandsFuncMap = map[string]commands.CommandFunc{
 }
 
 func init() {
-	flag.IntVar(&persistToDiskInSeconds, "persist-to-disk", int(time.Minute), "Server stores the database in every given minutes.")
-	flag.IntVar(&maxMemorySize, "max-mem-size", database.AbsolutDB, "Sets the maximum size of database. Server does not accepts new entries while maximum size is hanging. Default 0 means no limits.")
+	flag.IntVar(&persistToDiskInSeconds, "persist-to-disk", 60, "Server stores the database in every given minutes.")
+	flag.IntVar(&maxMemorySizeInBytes, "max-mem-size", database.AbsolutDB, "Sets the maximum size of database. Server does not accepts new entries while maximum size is hanging. Default 0 means no limits.")
+	flag.IntVar(&refreshRateInSeconds, "refresh-rate", 1, "Sets screen refresh rate in seconds.")
 	flag.StringVar(&port, "port", "6379", "Sets serving port. The given port number should be free for communication")
 	flag.StringVar(&file, "file", "", "Refers to database's location on the disk. Should be existed file.")
 	flag.BoolVar(&panics, "panics", true, "Shows panics.")
@@ -57,9 +62,28 @@ func p(err error) {
 	}
 }
 
-func main() {
+func cls() {
+	cmd := exec.Command("cmd", "/c", "cls")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
 
+func printScreen(sclog *screenlog.ScreenLog, done chan bool) {
+	for {
+		sclog.Print()
+		time.Sleep(time.Second * time.Duration(refreshRateInSeconds))
+		cls()
+	}
+
+	done <- true
+}
+
+func main() {
 	db = database.CreateDatabase(maxMemorySizeInBytes)
+	dbSize := db.Size
+	dbEntryCount := db.EntryCount
+	sclog = screenlog.CreateScreenLog(port, persistToDiskInSeconds, maxMemorySizeInBytes, &dbSize, &dbEntryCount)
+	done := make(chan bool)
 
 	listenerAddr := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", listenerAddr)
@@ -71,11 +95,13 @@ func main() {
 
 	defer listener.Close()
 
-	waitConnections(listener)
+	go waitConnections(listener, done)
+	go printScreen(sclog, done)
+
+	<-done
 }
 
-func waitConnections(listener net.Listener) {
-	log.Println("Waits connections")
+func waitConnections(listener net.Listener, done chan bool) {
 	for {
 		conn, err := listener.Accept()
 
@@ -84,10 +110,12 @@ func waitConnections(listener net.Listener) {
 			p(err)
 		}
 
-		log.Printf("connection %s", conn.RemoteAddr())
+		sclog.AddClientAddr(conn.RemoteAddr().String())
 
 		go listenClient(conn)
 	}
+
+	done <- true
 }
 
 func listenClient(conn net.Conn) {
@@ -95,7 +123,7 @@ func listenClient(conn net.Conn) {
 		message, err := bufio.NewReader(conn).ReadBytes('\n')
 
 		if err == io.EOF {
-			log.Print("Connection lost")
+			sclog.RemoveClientAddr(conn.RemoteAddr().String())
 			break
 		}
 

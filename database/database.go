@@ -73,6 +73,13 @@ func (db *Database) Size() int {
 	return count
 }
 
+func (db *Database) EntryCount() int {
+	db.Lock()
+	defer db.Unlock()
+
+	return len(db.entries)
+}
+
 func memoryCalcForEntry(key, val string) int {
 	return len(key) + len(val)
 }
