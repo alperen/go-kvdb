@@ -1,5 +1,9 @@
 package commands
 
-var Ping CommandFunc = func(m map[string]string) (Response, bool) {
-	return Response{"OK", "PONG", nil}, true
+import (
+	"go-kvdb/database.go"
+)
+
+var Ping CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
+	return Response{StatusOK, "PONG", nil}, true
 }
