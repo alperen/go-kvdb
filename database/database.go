@@ -1,7 +1,6 @@
 package database
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -103,8 +102,6 @@ func (db *Database) TTLWatcher(done chan bool) {
 	timer := time.Tick(1 * time.Second)
 	for range timer {
 		now := time.Now()
-
-		log.Println(len(db.entriesWithTTL))
 
 		for key, expire := range db.entriesWithTTL {
 			diff := expire.Sub(now)
