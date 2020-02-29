@@ -52,7 +52,7 @@ func init() {
 	flag.IntVar(&refreshRateInSeconds, "refresh-rate", 1, "Sets screen refresh rate in seconds.")
 	flag.StringVar(&port, "port", "6379", "Sets serving port. The given port number should be free for communication")
 	flag.StringVar(&file, "file", "", "Refers to database's location on the disk. Should be existed file.")
-	flag.BoolVar(&panics, "panics", true, "Shows panics.")
+	flag.BoolVar(&panics, "panics", false, "Shows panics.")
 	flag.BoolVar(&detach, "detach", false, "")
 
 	flag.Parse()
