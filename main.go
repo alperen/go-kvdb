@@ -10,6 +10,8 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"go-kvdb/commands"
@@ -24,9 +26,11 @@ var maxMemorySizeInBytes int
 var defaultTTLInSeconds int
 var refreshRateInSeconds int
 var port string
-var file string
+var fileStr string
 var panics bool
 var detach bool
+var flushToDisk bool
+var retro bool
 
 var (
 	errBadReqRes       = commands.Response{"error", "Received message could not parsed as json.", nil}
@@ -52,9 +56,11 @@ func init() {
 	flag.IntVar(&maxMemorySizeInBytes, "max-mem-size", database.AbsolutDB, "Sets the maximum size of database. Server does not accepts new entries while maximum size is hanging. Default 0 means no limits.")
 	flag.IntVar(&refreshRateInSeconds, "refresh-rate", 1, "Sets screen refresh rate in seconds.")
 	flag.StringVar(&port, "port", "6379", "Sets serving port. The given port number should be free for communication")
-	flag.StringVar(&file, "file", "", "Refers to database's location on the disk. Should be existed file.")
+	flag.StringVar(&fileStr, "file", "", "Refers to database's location on the disk. Should be existed file.")
 	flag.BoolVar(&panics, "panics", false, "Shows panics.")
-	flag.BoolVar(&detach, "detach", false, "")
+	flag.BoolVar(&detach, "detach", false, "Prints nothing to screen")
+	flag.BoolVar(&flushToDisk, "flush-to-disk", false, "Fluhes whole data into disk when database is full then deletes the data")
+	flag.BoolVar(&retro, "retro", true, "Retrieves data that storing in disk into memory")
 
 	flag.Parse()
 }
@@ -71,6 +77,16 @@ func cls() {
 	cmd.Run()
 }
 
+func detectSignalInterrupt(do func()) {
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		do()
+		os.Exit(0)
+	}()
+}
+
 func printScreen(sclog *screenlog.ScreenLog, done chan bool) {
 	for {
 		sclog.Print()
@@ -82,7 +98,8 @@ func printScreen(sclog *screenlog.ScreenLog, done chan bool) {
 }
 
 func main() {
-	db = database.CreateDatabase(maxMemorySizeInBytes)
+
+	db = database.CreateDatabase(maxMemorySizeInBytes, persistToDiskInSeconds)
 	dbSize := db.Size
 	dbEntryCount := db.EntryCount
 	sclog = screenlog.CreateScreenLog(port, persistToDiskInSeconds, maxMemorySizeInBytes, &dbSize, &dbEntryCount)
@@ -98,6 +115,10 @@ func main() {
 
 	defer listener.Close()
 
+	detectSignalInterrupt(func() {
+		log.Println("Lutfen gitme")
+	})
+
 	go waitConnections(listener, done)
 
 	if !detach {
@@ -105,6 +126,7 @@ func main() {
 	}
 
 	go db.TTLWatcher(done)
+	go db.PersistToFileWatcher(done)
 
 	<-done
 }

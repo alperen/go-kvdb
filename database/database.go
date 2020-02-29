@@ -1,6 +1,7 @@
 package database
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -10,19 +11,21 @@ var AbsolutDB = 0
 var isAbsolutDB = func(maxSize int) bool { return maxSize == AbsolutDB }
 
 type Database struct {
-	entries        map[string]string
-	maxSizeInBytes int
-	isFull         bool
-	entriesWithTTL map[string]time.Time
+	entries                map[string]string
+	maxSizeInBytes         int
+	isFull                 bool
+	entriesWithTTL         map[string]time.Time
+	persistToDiskInSeconds int
 	sync.Mutex
 }
 
-func CreateDatabase(maxSize int) *Database {
+func CreateDatabase(maxSize, persistToDiskInSeconds int) *Database {
 	return &Database{
-		entries:        make(map[string]string),
-		maxSizeInBytes: maxSize,
-		entriesWithTTL: make(map[string]time.Time),
-		Mutex:          sync.Mutex{},
+		entries:                make(map[string]string),
+		maxSizeInBytes:         maxSize,
+		entriesWithTTL:         make(map[string]time.Time),
+		persistToDiskInSeconds: persistToDiskInSeconds,
+		Mutex:                  sync.Mutex{},
 	}
 }
 
@@ -116,6 +119,7 @@ func (db *Database) GetEntryTTLDuration(key string) (time.Duration, bool) {
 
 func (db *Database) TTLWatcher(done chan bool) {
 	timer := time.Tick(1 * time.Second)
+
 	for range timer {
 		now := time.Now()
 
@@ -126,6 +130,16 @@ func (db *Database) TTLWatcher(done chan bool) {
 				db.Delete(key)
 			}
 		}
+	}
+
+	done <- true
+}
+
+func (db *Database) PersistToFileWatcher(done chan bool) {
+	timer := time.Tick(time.Duration(db.persistToDiskInSeconds) * time.Second)
+
+	for range timer {
+		log.Println("Should write to file")
 	}
 
 	done <- true
