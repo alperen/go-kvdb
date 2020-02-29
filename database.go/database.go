@@ -16,12 +16,19 @@ func CreateDatabase(maxSize int) *Database {
 	return &Database{
 		entries:        make(map[string]string),
 		maxSizeInBytes: maxSize,
-		isFull:         false,
 		Mutex:          sync.Mutex{},
 	}
 }
 
 func (db *Database) Set(key, value string) bool {
+	size := db.Size()
+	maxSize := db.maxSizeInBytes
+	candidateEntrySize := memoryCalcForEntry(key, value)
+
+	if size+candidateEntrySize > maxSize {
+		return false
+	}
+
 	db.Lock()
 	defer db.Unlock()
 
@@ -54,8 +61,12 @@ func (db *Database) Size() int {
 	count := 0
 
 	for k, v := range db.entries {
-		count += len(k) + len(v)
+		count += memoryCalcForEntry(k, v)
 	}
 
 	return count
+}
+
+func memoryCalcForEntry(key, val string) int {
+	return len(key) + len(val)
 }

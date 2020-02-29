@@ -3,8 +3,9 @@ package commands
 import "go-kvdb/database.go"
 
 var (
-	errSetKeyNotDefRes = Response{"error", "Key field is not defined in received arguments", nil}
-	errSetValNotDefRes = Response{"error", "Value field is not defined in received arguments", nil}
+	errSetKeyNotDefRes = Response{StatusErr, "Key field is not defined in received arguments", nil}
+	errSetValNotDefRes = Response{StatusErr, "Value field is not defined in received arguments", nil}
+	errSetFailedRes    = Response{StatusErr, "Unable to add key to database. Database may be full.", nil}
 )
 
 var Set CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
@@ -19,7 +20,11 @@ var Set CommandFunc = func(db *database.Database, m map[string]string) (Response
 		return errSetValNotDefRes, false
 	}
 
-	_ = db.Set(key, val)
+	ok := db.Set(key, val)
 
-	return Response{"OK", "", map[string]string{"value": val}}, true
+	if ok {
+		return Response{StatusOK, "", map[string]string{"value": val}}, true
+	}
+
+	return errSetFailedRes, false
 }
