@@ -98,6 +98,22 @@ func (db *Database) SetTTLValue(key string, duration time.Duration) {
 	db.entriesWithTTL[key] = expiresAt
 }
 
+func (db *Database) GetEntryTTLDuration(key string) (time.Duration, bool) {
+	db.Lock()
+	defer db.Unlock()
+
+	now := time.Now()
+	expiresAt, exists := db.entriesWithTTL[key]
+
+	if !exists {
+		return 0, false
+	}
+
+	diff := expiresAt.Sub(now)
+
+	return diff, true
+}
+
 func (db *Database) TTLWatcher(done chan bool) {
 	timer := time.Tick(1 * time.Second)
 	for range timer {
