@@ -41,6 +41,7 @@ var commandsFuncMap = map[string]commands.CommandFunc{
 	"SET":    commands.Set,
 	"DELETE": commands.Delete,
 	"INCR":   commands.Incr,
+	"DECR":   commands.Decr,
 	"EXPIRE": commands.Expire,
 	"TTL":    commands.TTL,
 	"PING":   commands.Ping,
