@@ -17,6 +17,8 @@ import (
 	"go-kvdb/screenlog"
 )
 
+var eofIdentifier = byte('\n')
+
 var persistToDiskInSeconds int
 var maxMemorySizeInBytes int
 var defaultTTLInSeconds int
@@ -125,7 +127,7 @@ func waitConnections(listener net.Listener, done chan bool) {
 
 func listenClient(conn net.Conn) {
 	for {
-		message, err := bufio.NewReader(conn).ReadBytes('\n')
+		message, err := bufio.NewReader(conn).ReadBytes(eofIdentifier)
 
 		if err == io.EOF {
 			sclog.RemoveClientAddr(conn.RemoteAddr().String())
@@ -160,7 +162,7 @@ func listenClient(conn net.Conn) {
 
 func bytedRes(res commands.Response) []byte {
 	bytes, _ := json.Marshal(res)
-	bytes = append(bytes, '\n')
+	bytes = append(bytes, eofIdentifier)
 
 	return bytes
 }
