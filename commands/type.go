@@ -14,3 +14,8 @@ type Response struct {
 }
 
 type CommandFunc func(*database.Database, map[string]string) (Response, bool)
+
+var (
+	StatusOK  = "OK"
+	StatusErr = "ERROR"
+)

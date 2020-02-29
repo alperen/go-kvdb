@@ -8,6 +8,7 @@ type Database struct {
 	entries        map[string]string
 	maxSizeInBytes int
 	isFull         bool
+	entriesWithTTL []string
 	sync.Mutex
 }
 
@@ -29,13 +30,22 @@ func (db *Database) Set(key, value string) bool {
 	return true
 }
 
-func (db *Database) Get(key string) string {
+func (db *Database) Get(key string) (string, bool) {
 	db.Lock()
 	defer db.Unlock()
 
-	value, _ := db.entries[key]
+	value, exists := db.entries[key]
 
-	return value
+	return value, exists
+}
+
+func (db *Database) Delete(key string) bool {
+	db.Lock()
+	defer db.Unlock()
+
+	delete(db.entries, key)
+
+	return true
 }
 
 func (db *Database) Size() int {
