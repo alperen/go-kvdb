@@ -1,6 +1,6 @@
 package commands
 
-import "go-kvdb/database.go"
+import "go-kvdb/database"
 
 type Request struct {
 	Command string            `json:"command"`

@@ -1,6 +1,6 @@
 package commands
 
-import "go-kvdb/database.go"
+import "go-kvdb/database"
 
 var (
 	errSetKeyNotDefRes = Response{StatusErr, "Key field is not defined in received arguments", nil}

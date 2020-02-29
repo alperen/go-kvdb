@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"go-kvdb/database.go"
+	"go-kvdb/database"
 )
 
 var Ping CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {

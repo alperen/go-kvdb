@@ -12,7 +12,7 @@ import (
 
 	"go-kvdb/commands"
 
-	"go-kvdb/database.go"
+	"go-kvdb/database"
 )
 
 var jsonEOF = '}'
