@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -98,8 +99,23 @@ func printScreen(sclog *screenlog.ScreenLog, done chan bool) {
 }
 
 func main() {
+	var dbFilePtr *os.File
 
-	db = database.CreateDatabase(maxMemorySizeInBytes, persistToDiskInSeconds)
+	if fileStr == "" {
+		tempFile, err := ioutil.TempFile(os.TempDir(), "gokvdb")
+
+		if err != nil {
+			log.Println(err)
+			log.Fatal("Unable to create db temp file")
+			p(err)
+		}
+
+		defer tempFile.Close()
+
+		dbFilePtr = tempFile
+	}
+
+	db = database.CreateDatabase(maxMemorySizeInBytes, persistToDiskInSeconds, dbFilePtr)
 	dbSize := db.Size
 	dbEntryCount := db.EntryCount
 	sclog = screenlog.CreateScreenLog(port, persistToDiskInSeconds, maxMemorySizeInBytes, &dbSize, &dbEntryCount)
@@ -116,7 +132,7 @@ func main() {
 	defer listener.Close()
 
 	detectSignalInterrupt(func() {
-		log.Println("Lutfen gitme")
+		db.WriteDBToFile()
 	})
 
 	go waitConnections(listener, done)

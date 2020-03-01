@@ -1,7 +1,9 @@
 package database
 
 import (
-	"log"
+	"encoding/json"
+	"fmt"
+	"os"
 	"sync"
 	"time"
 )
@@ -16,15 +18,17 @@ type Database struct {
 	isFull                 bool
 	entriesWithTTL         map[string]time.Time
 	persistToDiskInSeconds int
+	dbFilePtr              *os.File
 	sync.Mutex
 }
 
-func CreateDatabase(maxSize, persistToDiskInSeconds int) *Database {
+func CreateDatabase(maxSize, persistToDiskInSeconds int, dbFilePtr *os.File) *Database {
 	return &Database{
 		entries:                make(map[string]string),
 		maxSizeInBytes:         maxSize,
 		entriesWithTTL:         make(map[string]time.Time),
 		persistToDiskInSeconds: persistToDiskInSeconds,
+		dbFilePtr:              dbFilePtr,
 		Mutex:                  sync.Mutex{},
 	}
 }
@@ -135,11 +139,30 @@ func (db *Database) TTLWatcher(done chan bool) {
 	done <- true
 }
 
+func (db *Database) WriteDBToFile() {
+	db.Lock()
+	defer db.Unlock()
+
+	dbInBytes, _ := json.Marshal(db.entries)
+
+	_, err := fmt.Fprint(db.dbFilePtr, dbInBytes)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (db *Database) PersistToFileWatcher(done chan bool) {
 	timer := time.Tick(time.Duration(db.persistToDiskInSeconds) * time.Second)
 
 	for range timer {
-		log.Println("Should write to file")
+		entryCount := len(db.entries)
+
+		if entryCount == 0 {
+			continue
+		}
+
+		db.WriteDBToFile()
 	}
 
 	done <- true
