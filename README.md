@@ -4,12 +4,12 @@ The database runs in your memory so if you terminate the process your data may b
 The project lies under understanding key-value databases. It's not a production-ready code or not an alternative project to Redis or Memcache. 
 
 It's a good kickstart project to understand the following
-[*] Use network-level communication. Marshal/Unmarshal data which comes from TCP
-[*] Service to multiples clients at the same time
-[*] Mutex locks
-[*] Parse the received flags
-[*] IO Basics
-[*] Implementation of protocol
+* Use network-level communication. Marshal/Unmarshal data which comes from TCP
+* Service to multiples clients at the same time
+* Mutex locks
+* Parse the received flags
+* IO Basics
+* Implementation of protocol
 
 There are eight commands to operate the database to do `CRUD`.
 
