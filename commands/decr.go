@@ -11,6 +11,10 @@ var (
 	errDecrKeyNotExistsRes = Response{StatusErr, "There is not any data related with the received key.", nil}
 	errDecrParseErrRes     = Response{StatusErr, "Unable to parse the data into number type", nil}
 )
+
+/*Decr works as the same as INCR method.
+ *But decreases once the value.
+ */
 var Decr CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
 	key, keyExists := m["key"]
 

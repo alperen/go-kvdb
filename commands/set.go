@@ -13,6 +13,9 @@ var (
 	errTTLNotNumberRes = Response{StatusErr, "TTL value should be a number which is integer.", nil}
 )
 
+/*Set does create a key-value pair in the database.
+ *If the key exists already in the database, the newest value will rewrite on key.
+ */
 var Set CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
 	key, keyExists := m["key"]
 	val, valExists := m["value"]

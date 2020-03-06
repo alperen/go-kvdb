@@ -8,6 +8,8 @@ import (
 var (
 	errTTLKeyNotDefRes = Response{StatusErr, "Key field is not defined in received arguments", nil}
 )
+
+/*TTL command responds to the remaining seconds to expire key that received.*/
 var TTL CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
 	key, exists := m["key"]
 

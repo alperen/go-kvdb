@@ -11,6 +11,7 @@ var (
 	errExpireTTLNotNumberRes = Response{StatusErr, "TTL value should be a number which is integer.", nil}
 )
 
+/*Expire changes or sets TTL value the recived key. The expire defines the expiration in seconds.*/
 var Expire CommandFunc = func(db *database.Database, m map[string]string) (Response, bool) {
 	key, keyExists := m["key"]
 	ttl, ttlExists := m["ttl"]
