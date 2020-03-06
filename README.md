@@ -1,3 +1,4 @@
+# Simple Key-value Database with Go
 This is a basic implementation of key-value database that written in Go language. Basically stores your data with a key in memory.
 The database runs in your memory so if you terminate the process your data may be fly. But if you specify a file path with `--file` argument you'll get the last snapshot your database to file after termination. Also you can put your data back from a file with using `-retro` argument. The back-up file should be valid JSON string that order in binary. You can change the process arguments by your wish. There are nine arguments to modify database system. You check them with run `go run main.go --help`
 
@@ -10,12 +11,19 @@ It's a good kickstart project to understand the following
 * Parse the received flags
 * IO Basics
 * Implementation of protocol
+* Use builtin packages in Go. (The program does not require any 3th party package.)
 
-There are eight commands to operate the database to do `CRUD`.
 
+## About Specifications
 Specification of the program has sourced from [hipo/backend-challenges/kvdb](https://github.com/Hipo/backend-challenges/tree/master/kvdb)
 
-## SET
+## Clients
+Clients should open a TTL connection to the port that program runs. All communication (sending-receiving) will be in binary formatted JSON. Here is a [example client code](https://gist.github.com/alperen/84f921994f0b61f914b281f6638c7aec) that written in Go.
+
+## Commands
+There are eight commands to operate the database to do `CRUD`.
+
+### SET
 Creates a key-value pair in the database. If the key exists already in the database, the newest value will rewrite on key.
 
 ```json
@@ -34,7 +42,7 @@ The database only holds string values. If you use `DECR` or `INCR` commands the 
 
 Also `SET` command calculates the database size before the add your request. If your key-value pair will make overflow the database size, your request will be deferred. The database has a max size or it can be absolut database that makes it unlimited. You can change it with `-max-mem-size` argument. The argument changes the database maximum size in bytes, zero value means not limits.
 
-## GET
+### GET
 Get a value that related with received key. If the key doesn't exist in the database response error message.
 
 ```json
@@ -47,7 +55,7 @@ Get a value that related with received key. If the key doesn't exist in the data
 ```
 Reflects the value in `result` array in the response.
 
-## Delete
+### Delete
 Deletes the value that related with received key. Always return `OK` response.
 
 ```json
@@ -59,7 +67,7 @@ Deletes the value that related with received key. Always return `OK` response.
 }
 ```
 
-## INCR
+### INCR
 The method increases once the value with related with received key. The holding value could be parsable to `float64` or `int` otherwise throws parse error.
 
 ```json
@@ -71,7 +79,7 @@ The method increases once the value with related with received key. The holding 
 }
 ```
 
-## DECR
+### DECR
 Works as the same as `INCR` method. But decreases once the value.
 
 ```json
@@ -83,7 +91,7 @@ Works as the same as `INCR` method. But decreases once the value.
 }
 ```
 
-## EXPIRE
+### EXPIRE
 Changes or sets TTL value the recived key. The `expire` defines the expiration in seconds.
 ```json
 {
@@ -94,7 +102,7 @@ Changes or sets TTL value the recived key. The `expire` defines the expiration i
     }
 }
 ```
-## TTL
+### TTL
 TTL command responds to the remaining seconds to expire key that received.
 
 ```json
@@ -106,7 +114,7 @@ TTL command responds to the remaining seconds to expire key that received.
 }
 ```
 
-## PING
+### PING
 Just a basic implementation that to test connection. Reflects `PONG` data.
 
 ```json
