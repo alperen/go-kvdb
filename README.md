@@ -12,6 +12,7 @@ It's a good kickstart project to understand the following
 * Implementation of protocol
 
 There are eight commands to operate the database to do `CRUD`.
+
 Specification of the program has sourced from [hipo/backend-challenges/kvdb](https://github.com/Hipo/backend-challenges/tree/master/kvdb)
 
 ## SET
