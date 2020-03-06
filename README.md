@@ -12,6 +12,7 @@ It's a good kickstart project to understand the following
 * Implementation of protocol
 
 There are eight commands to operate the database to do `CRUD`.
+Specification of the program has sourced from [hipo/backend-challenges/kvdb](https://github.com/Hipo/backend-challenges/tree/master/kvdb)
 
 ## SET
 Creates a key-value pair in the database. If the key exists already in the database, the newest value will rewrite on key.
