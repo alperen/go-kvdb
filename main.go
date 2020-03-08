@@ -30,7 +30,6 @@ var port string
 var fileStr string
 var panics bool
 var detachMode bool
-var flushToDisk bool
 
 var (
 	errBadReqRes       = commands.Response{"error", "Received message could not parsed as json.", nil}
@@ -59,7 +58,6 @@ func init() {
 	flag.StringVar(&fileStr, "file", "", "Refers to database's location on the disk. Should be existed file.")
 	flag.BoolVar(&panics, "panics", false, "Shows panics.")
 	flag.BoolVar(&detachMode, "detach", false, "Prints nothing to screen")
-	flag.BoolVar(&flushToDisk, "flush-to-disk", false, "Fluhes whole data into disk when database is full then deletes the data")
 
 	flag.Parse()
 }

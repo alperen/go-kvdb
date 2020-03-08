@@ -128,8 +128,6 @@ go run main.go --help
         Prints nothing to screen
   -file string
         Refers to database's location on the disk. Should be existed file.
-  -flush-to-disk
-        Fluhes whole data into disk when database is full then deletes the data
   -max-mem-size int
         Sets the maximum size of database. Server does not accepts new entries while maximum size is hanging. Default 0 means no limits.
   -panics
