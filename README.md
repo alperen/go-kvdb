@@ -4,7 +4,7 @@ This is a basic implementation of key-value database that written in Go language
 The project lies under understanding key-value databases. It's not a production-ready code or not an alternative project to Redis or Memcache. 
 
 It's a good kickstart project to understand the following
-* Use network-level communication. Marshal/Unmarshal data which comes from TCP
+* Use network-level communication. Parse and send binary json over TCP.
 * Service to multiples clients at the same time
 * Mutex locks
 * Parse the received flags
