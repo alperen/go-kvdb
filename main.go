@@ -29,9 +29,8 @@ var refreshRateInSeconds int
 var port string
 var fileStr string
 var panics bool
-var detach bool
+var detachMode bool
 var flushToDisk bool
-var retro bool
 
 var (
 	errBadReqRes       = commands.Response{"error", "Received message could not parsed as json.", nil}
@@ -59,9 +58,8 @@ func init() {
 	flag.StringVar(&port, "port", "6379", "Sets serving port. The given port number should be free for communication")
 	flag.StringVar(&fileStr, "file", "", "Refers to database's location on the disk. Should be existed file.")
 	flag.BoolVar(&panics, "panics", false, "Shows panics.")
-	flag.BoolVar(&detach, "detach", false, "Prints nothing to screen")
+	flag.BoolVar(&detachMode, "detach", false, "Prints nothing to screen")
 	flag.BoolVar(&flushToDisk, "flush-to-disk", false, "Fluhes whole data into disk when database is full then deletes the data")
-	flag.BoolVar(&retro, "retro", true, "Retrieves data that storing in disk into memory")
 
 	flag.Parse()
 }
@@ -105,7 +103,6 @@ func main() {
 		tempFile, err := ioutil.TempFile(os.TempDir(), "gokvdb")
 
 		if err != nil {
-			log.Println(err)
 			log.Fatal("Unable to create db temp file")
 			p(err)
 		}
@@ -113,9 +110,21 @@ func main() {
 		defer tempFile.Close()
 
 		dbFilePtr = tempFile
+	} else {
+		file, err := os.OpenFile(fileStr, os.O_RDWR, 066)
+
+		if err != nil {
+			log.Fatalf("Unable to open db file %s", fileStr)
+			p(err)
+		}
+
+		defer file.Close()
+
+		dbFilePtr = file
 	}
 
 	db = database.CreateDatabase(maxMemorySizeInBytes, persistToDiskInSeconds, dbFilePtr)
+
 	dbSize := db.Size
 	dbEntryCount := db.EntryCount
 	sclog = screenlog.CreateScreenLog(port, persistToDiskInSeconds, maxMemorySizeInBytes, &dbSize, &dbEntryCount)
@@ -137,7 +146,7 @@ func main() {
 
 	go waitConnections(listener, done)
 
-	if !detach {
+	if !detachMode {
 		go printScreen(sclog, done)
 	}
 

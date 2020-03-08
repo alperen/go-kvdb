@@ -141,9 +141,10 @@ func (db *Database) TTLWatcher(done chan bool) {
 
 func (db *Database) WriteDBToFile() {
 	db.Lock()
-	defer db.Unlock()
 
 	dbInBytes, _ := json.Marshal(db.entries)
+
+	db.Unlock()
 
 	_, err := fmt.Fprint(db.dbFilePtr, dbInBytes)
 

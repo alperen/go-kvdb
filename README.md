@@ -140,6 +140,4 @@ go run main.go --help
         Sets serving port. The given port number should be free for communication (default "6379")
   -refresh-rate int
         Sets screen refresh rate in seconds. (default 1)
-  -retro
-        Retrieves data that storing in disk into memory (default true)
 ```
